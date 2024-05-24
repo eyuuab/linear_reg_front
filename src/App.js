@@ -7,28 +7,37 @@ function App() {
   const [squareFeet, setSquareFeet] = useState("");
   const [bedrooms, setBedrooms] = useState("");
   const [bathrooms, setBathrooms] = useState("");
-  const [area, setArea] = useState("");
+  const [year, setyear] = useState("");
   const [prediction, setPrediction] = useState(null);
   const [dataSample, setDataSample] = useState([]);
   const [showSampleData, setShowSampleData] = useState(false);
+  const [modelAccuracy, setModelAccuracy] = useState(null);
 
   useEffect(() => {
     const fetchDataSample = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:8000/api/data_sample/"
-        );
+        const response = await axios.get("http://localhost:8000/api/data_sample/");
         setDataSample(response.data.data_sample);
       } catch (error) {
         console.error("There was an error fetching the data sample!", error);
       }
     };
     fetchDataSample();
+
+    const fetchModelAccuracy = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/model_accuracy/");
+        setModelAccuracy(response.data.mean_squared_error);
+      } catch (error) {
+        console.error("There was an error fetching the model accuracy!", error);
+      }
+    };
+    fetchModelAccuracy();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const inputData = `${squareFeet},${bedrooms},${bathrooms},${area}`;
+    const inputData = `${squareFeet},${bedrooms},${bathrooms},${year}`;
     try {
       const response = await axios.post(
         "http://localhost:8000/api/predict/",
@@ -149,8 +158,8 @@ function App() {
               <label>Year Built:</label>
               <input
                 type="number"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
+                value={year}
+                onChange={(e) => setyear(e.target.value)}
                 required
               />
             </div>
@@ -160,7 +169,13 @@ function App() {
         {prediction !== null && (
           <section className="section-content">
             <h2>Prediction Result</h2>
-            <p>The predicted housing price is: {prediction}</p>
+            <h3>The predicted housing price is: {prediction}</h3>
+          </section>
+        )}
+        {modelAccuracy !== null && (
+          <section className="section-content">
+            <h2>Model Accuracy</h2>
+            <h3>The mean squared error of the model is: {modelAccuracy}</h3>
           </section>
         )}
       </header>
